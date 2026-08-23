@@ -1,0 +1,3 @@
+# Registry backups contain your encrypted account record - never commit them.
+backups/
+*.reg
