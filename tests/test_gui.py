@@ -49,15 +49,27 @@ def test_status_badges_follow_the_registry(root, record):
     assert app.b_clean._enabled
 
 
-def test_clean_button_disabled_when_nothing_to_clean(root):
+def test_clean_button_stays_enabled_even_without_a_record(root):
     app, _ = _app(root, None)
     for _ in range(20):
         root.update()
         time.sleep(0.02)
     assert app.exists is False
-    assert not app.b_clean._enabled
-    app.dry_var.set(True)  # a preview is always allowed
-    assert app.b_clean._enabled
+    assert app.b_clean._enabled  # never blocked by a (possibly stale) status
+
+
+def test_page_scrolls_when_window_is_small(root, record):
+    app, _ = _app(root, record)
+    root.geometry("560x300")
+    root.deiconify()
+    for _ in range(20):
+        root.update()
+        time.sleep(0.02)
+    first, last = app.canvas.yview()
+    assert last < 1.0  # content taller than the window
+    app.canvas.yview_scroll(1, "pages")
+    root.update()
+    assert app.canvas.yview()[0] > first
 
 
 def test_clean_flow_deletes_record(root, record, monkeypatch, tmp_path):
