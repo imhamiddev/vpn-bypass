@@ -1,279 +1,149 @@
-<h1 align="center">Account Record Cleaner</h1>
-
 <p align="center">
-  <em>Removes the local "expired account" record the Windscribe Windows client stores in the registry.</em>
+  <img src="assets/banner.svg" alt="Account Record Cleaner" width="100%">
 </p>
 
 <p align="center">
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white">
-  <img alt="Python" src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white">
-  <img alt="Admin rights" src="https://img.shields.io/badge/admin%20rights-not%20required-brightgreen">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
+  <a href="../../releases/latest"><img alt="Download" src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_Download_latest-0e7490?style=for-the-badge&logo=windows&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <a href="#english">English</a> &nbsp;&middot;&nbsp; <a href="#persian">فارسی</a>
+  <img alt="Release" src="https://img.shields.io/github/v/release/imhamiddev/vpn-bypass?style=flat-square&color=6366f1">
+  <img alt="Downloads" src="https://img.shields.io/github/downloads/imhamiddev/vpn-bypass/total?style=flat-square&color=0e7490">
+  <img alt="Build" src="https://img.shields.io/github/actions/workflow/status/imhamiddev/vpn-bypass/release.yml?style=flat-square">
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=flat-square&logo=windows&logoColor=white">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square">
 </p>
 
----
+<p align="center"><b>English</b> &nbsp;·&nbsp; <a href="README.fa.md">فارسی</a></p>
 
-<h2 id="english">English</h2>
+## What is this?
 
-### What is this?
+If connecting with **Windscribe** shows
 
-A small Python tool (with ready-made `.exe` builds) that backs up and deletes the registry key in
-which the **Windscribe desktop client for Windows** records a *previously expired* free account.
+> *Your original account `xxxx` has expired. Creating multiple accounts to bypass free tier limitations is prohibited.*
 
-It touches **one key under `HKCU`** and nothing else. It is not a patch, a crack, or a modified
-client — it removes a local record and keeps a `.reg` backup so you can put it back.
+the cause is not your password or network. The Windscribe Windows client keeps a **local record**
+of an expired free account in the registry and blocks connections based on it. This tool **backs up
+and deletes that record**.
+
+- 🖱️ Small window, nothing to install
+- 💾 Automatic `.reg` backup before deleting, one-click restore
+- 🔒 Touches **one key** under `HKCU`; no admin rights, no network access
+- 🧪 `--dry-run` mode that changes nothing
 
 > [!IMPORTANT]
-> Local cleanup only. It does **not** change anything on Windscribe's servers and does not grant,
-> extend, or restore any subscription. See [Limitations](#limitations).
+> Local cleanup only. Nothing changes on Windscribe's servers, and no subscription is granted or extended.
 
-### The problem
+## Quick start
 
-When the client sees a free account whose status is expired (`status == 2`), it stores that
-account's `username`, `userId`, and `date` — encrypted — under a key named to look like a stock
-Windows key:
+<p align="center"><img src="assets/steps.svg" alt="Steps" width="90%"></p>
 
+1. Download **`AccountRecordCleaner.exe`** from **[Releases](../../releases/latest)**.
+2. Close Windscribe (or keep "Close Windscribe first" ticked) and double-click the exe.
+3. Press **Clear account record**, confirm, then reopen Windscribe.
+
+> [!NOTE]
+> Windows SmartScreen may show "Windows protected your PC" because the exe is not code-signed.
+> Click **More info → Run anyway**. Verify the download against `SHA256SUMS.txt`:
+> `Get-FileHash .\AccountRecordCleaner.exe -Algorithm SHA256`
+
+Made a mistake? **Restore latest backup** puts the record back.
+
+## How it works
+
+```mermaid
+flowchart TD
+    A([Run]) --> B{Windscribe running?}
+    B -- "yes, Close ticked" --> C[Close politely, force only if needed, wait until gone]
+    B -- no --> D
+    C --> D{Record exists?}
+    D -- no --> E([Already clean])
+    D -- yes --> F[Back up key to .reg]
+    F --> G{Backup OK?}
+    G -- no --> H([Stop - nothing deleted])
+    G -- yes --> I[Delete key]
+    I --> J{Really gone?}
+    J -- yes --> K([Done])
+    J -- no --> L([Error with details])
 ```
+
+The record lives here (named to look like a stock Windows key):
+
+```text
 HKCU\Software\Microsoft\Windows\CurrentVersion\NetControlPort
     Version  REG_DWORD    0x1
     State    REG_BINARY   <encrypted blob>
 ```
 
-On a later run, if the current account is free and differs from the stored record, the client
-enters `CONNECT_BLOCKED_MULTI_ACCOUNT` and shows:
+## Command line
 
-> Your original account `<username>` has expired.
-> Creating multiple accounts to bypass free tier limitations is prohibited.
-
-The message is not about a wrong password or a broken connection — it is this local record.
-
-### Download
-
-Get the latest build from **[Releases](../../releases/latest)**:
-
-| File | What it is |
-|---|---|
-| `AccountRecordCleaner.exe` | Small window — double-click, pick options, press the button |
-| `AccountRecordCleaner-cli.exe` | Console version for terminals and scripts |
-| `SHA256SUMS.txt` | Checksums — compare with `Get-FileHash <file>` |
-
-The executables are built by GitHub Actions from this repository's source
-(`.github/workflows/release.yml`). They are not code-signed, so Windows SmartScreen may warn on
-first launch.
-
-### Usage
+`AccountRecordCleaner-cli.exe` is the console build (the other exe is the window):
 
 ```powershell
 AccountRecordCleaner-cli.exe --kill-client      # close Windscribe, back up, delete
-AccountRecordCleaner-cli.exe --dry-run          # show what would happen, change nothing
+AccountRecordCleaner-cli.exe --dry-run          # report only
 AccountRecordCleaner-cli.exe --restore          # re-import the newest backup
 AccountRecordCleaner-cli.exe --list-backups
 ```
 
 | Option | Meaning |
 |---|---|
-| `--kill-client` | Ask Windscribe to close (so it disconnects cleanly), force it only if needed, wait until it is gone |
-| `--no-backup` | Delete without a `.reg` backup |
+| `--kill-client` | Ask Windscribe to close, force only if needed, wait until it is gone |
+| `--no-backup` | Delete without a backup (not recommended) |
 | `--backup-dir DIR` | Where backups are written / read |
 | `--dry-run` | Report only |
 | `--restore [FILE]` | Import a backup (default: newest) instead of cleaning |
-| `--list-backups` | List backups and exit |
+| `--list-backups` | List backups |
 
-| Exit code | Meaning |
-|---|---|
-| `0` | Key deleted / restored, or no key was present |
-| `1` | Backup failed, delete failed, or the client could not be closed |
-| `2` | Not running on Windows |
+Exit codes: `0` success · `1` failure (backup, delete, or closing the client) · `2` not Windows.
 
-If a backup cannot be written, **nothing is deleted**. Backups are never overwritten (a numeric
-suffix is added if two runs share a timestamp). They go to `backups/` next to the program, or to
-`%LOCALAPPDATA%\AccountRecordCleaner\backups` if that folder is not writable.
+Backups go to `backups/` next to the program (or `%LOCALAPPDATA%\AccountRecordCleaner\backups`
+if that is not writable), are never overwritten, and if one cannot be written **nothing is deleted**.
 
 > [!WARNING]
-> `backups/` and `*.reg` are gitignored on purpose — a backup contains your encrypted account
-> record. Never commit one.
+> A backup contains your encrypted account record - never upload or commit one.
 
-### Run from source
+## Transparency
 
-```powershell
-python -m pip install -e .
-python -m account_cleaner --kill-client
-python -m account_cleaner.gui          # the window
-```
+- Open source, small, reads/deletes only the key above
+- No network code; the program sends nothing anywhere
+- Executables are built by GitHub Actions from this source (`.github/workflows/release.yml`), with checksums in each release
+- 30+ automated tests
 
-### Build the exe yourself
+## Development
 
 ```powershell
 python -m pip install -e ".[dev]"
-python packaging/build.py              # -> dist/AccountRecordCleaner*.exe
+python -m pytest -q
+python -m account_cleaner --dry-run      # CLI from source
+python -m account_cleaner.gui            # window from source
+python packaging/build.py                # build the exes (Windows)
 ```
 
-To publish a release: push a tag such as `v1.0.0`. The *Release* workflow builds on a Windows
-runner, runs the tests and a smoke test, and attaches the files to a GitHub Release.
+Release: `git tag v1.0.1 && git push origin v1.0.1` - the workflow builds, tests and publishes.
 
-### Development
-
-```
+```text
 account_cleaner/   core logic, registry backend, process handling, CLI, GUI
-tests/             unit tests (in-memory registry fake) + opt-in real-registry test
+tests/             unit tests + opt-in real-registry test
 packaging/         PyInstaller entry points and build script
+assets/            banner and diagrams
 .github/workflows/ CI, exe build, release
 ```
 
-```bash
-python -m pip install -e ".[dev]"
-python -m pytest -q
-```
+## Limitations
 
-### Where this comes from
+- **Not permanent** - the client recreates the key if it sees an expired account again.
+- **Local only** - server-side restrictions are not affected.
+- **Windows only** - macOS and Linux store the record differently.
 
-These paths live in the **upstream Windscribe client source**
-([Windscribe/Desktop-App](https://github.com/Windscribe/Desktop-App)), not in this repository, and
-are listed so the behaviour can be verified rather than taken on trust:
+## Disclaimer
 
-| File | Role |
-|---|---|
-| `src/client/frontend/frontend-common/multipleaccountdetection/secretvalue_win.cpp` | Reads/writes/deletes the registry key |
-| `src/client/frontend/gui/mainwindow.cpp` | The multi-account detection condition |
-| `src/client/frontend/frontend-common/blockconnect.cpp` | Builds the error message text |
+Published for research and educational purposes: documenting how a client-side detection mechanism
+stores state on your own machine and how to inspect and reset it. Complying with Windscribe's Terms
+of Service is your responsibility. Not affiliated with or endorsed by Windscribe. No warranty; use
+at your own risk.
 
-The detection fires when all of these hold: a previous free account with `status == 2` is on
-record, that record exists in local storage, the current account is free rather than premium, it
-differs from the stored one (username or user ID), and it is otherwise active.
+## License
 
-### Limitations
-
-- **Not permanent.** The client recreates the key whenever it next sees an expired account.
-- **Local only.** Nothing changes server-side. If Windscribe applied a restriction on their end,
-  this tool has no effect on it.
-- **Windows only.** macOS and Linux store the record differently.
-
-### Disclaimer
-
-Published for research and educational purposes — documenting how a client-side detection
-mechanism stores state on your own machine, and how to inspect and reset it. Complying with
-Windscribe's Terms of Service is your responsibility. Not affiliated with or endorsed by
-Windscribe. No warranty; use at your own risk.
-
-### License
-
-MIT — see [LICENSE](LICENSE).
-
----
-
-<div dir="rtl">
-
-<h2 id="persian">فارسی</h2>
-
-### این چیست؟
-
-یک ابزار کوچک Python (با نسخه‌ی آماده‌ی `.exe`) که از کلید رجیستریِ مربوط به رکورد حساب منقضی‌شده در کلاینت دسکتاپ Windscribe روی ویندوز بکاپ می‌گیرد و سپس آن را حذف می‌کند.
-
-فقط یک کلید زیر `HKCU` را دست می‌زند. نه پچ است، نه کرک، نه کلاینت دستکاری‌شده — یک رکورد محلی را حذف می‌کند و بکاپ `.reg` نگه می‌دارد تا بتوانید برش گردانید.
-
-> [!IMPORTANT]
-> این ابزار فقط محلی است. هیچ تغییری در سمت سرور Windscribe ایجاد نمی‌کند و هیچ اشتراکی را تمدید یا فعال نمی‌کند.
-
-### مسئله
-
-وقتی کلاینت یک حساب رایگان با وضعیت منقضی (`status == 2`) ببیند، مشخصات آن حساب — `username`، `userId` و `date` — را رمزگذاری‌شده در رجیستری ذخیره می‌کند. اسم کلید طوری انتخاب شده که شبیه کلیدهای خود ویندوز باشد:
-
-</div>
-
-```
-HKCU\Software\Microsoft\Windows\CurrentVersion\NetControlPort
-    Version  REG_DWORD    0x1
-    State    REG_BINARY   <encrypted blob>
-```
-
-<div dir="rtl">
-
-در اجرای بعدی، اگر حساب فعلی رایگان و متفاوت از رکورد ذخیره‌شده باشد، کلاینت وارد حالت `CONNECT_BLOCKED_MULTI_ACCOUNT` می‌شود و پیام «Your original account ... has expired» را نشان می‌دهد. علتش اشتباه‌بودن رمز یا قطع‌بودن اینترنت نیست؛ همین رکورد محلی است.
-
-### دانلود
-
-آخرین نسخه را از **[Releases](../../releases/latest)** بگیرید:
-
-| فایل | توضیح |
-|---|---|
-| `AccountRecordCleaner.exe` | پنجره‌ی ساده — دابل‌کلیک، انتخاب گزینه‌ها، زدن دکمه |
-| `AccountRecordCleaner-cli.exe` | نسخه‌ی کنسولی برای ترمینال و اسکریپت |
-| `SHA256SUMS.txt` | چک‌سام — با `Get-FileHash <file>` مقایسه کنید |
-
-فایل‌های exe با GitHub Actions از سورس همین مخزن ساخته می‌شوند. امضای دیجیتال ندارند، پس ممکن است SmartScreen در اولین اجرا هشدار بدهد.
-
-### نحوه‌ی استفاده
-
-</div>
-
-```powershell
-AccountRecordCleaner-cli.exe --kill-client      # بستن Windscribe، بکاپ، حذف
-AccountRecordCleaner-cli.exe --dry-run          # فقط نشان بده چه می‌شود
-AccountRecordCleaner-cli.exe --restore          # برگرداندن جدیدترین بکاپ
-AccountRecordCleaner-cli.exe --list-backups
-```
-
-<div dir="rtl">
-
-گزینه‌ها: `--kill-client` (ابتدا بستن تمیز، فقط در صورت نیاز اجبارا بستن، و صبر تا بسته‌شدن کامل)، `--no-backup`، `--backup-dir DIR`، `--dry-run`، `--restore [FILE]`، `--list-backups`.
-
-کد خروج: `0` موفق (یا رکوردی نبود)، `1` شکست در بکاپ/حذف/بستن کلاینت، `2` ویندوز نیست.
-
-اگر بکاپ ساخته نشود، **هیچ چیزی حذف نمی‌شود**. بکاپ‌ها هرگز بازنویسی نمی‌شوند و در پوشه‌ی `backups/` کنار برنامه (یا در `%LOCALAPPDATA%\AccountRecordCleaner\backups` اگر آن پوشه قابل نوشتن نبود) ذخیره می‌شوند.
-
-> [!WARNING]
-> پوشه‌ی `backups/` و فایل‌های `*.reg` عمداً در `.gitignore` هستند — هر بکاپ حاوی رکورد رمزگذاری‌شده‌ی حساب شماست. هرگز آن را commit نکنید.
-
-### اجرا از سورس
-
-</div>
-
-```powershell
-python -m pip install -e .
-python -m account_cleaner --kill-client
-python -m account_cleaner.gui          # پنجره
-```
-
-<div dir="rtl">
-
-### ساخت exe توسط خودتان
-
-</div>
-
-```powershell
-python -m pip install -e ".[dev]"
-python packaging/build.py              # -> dist/AccountRecordCleaner*.exe
-```
-
-<div dir="rtl">
-
-برای انتشار: یک تگ مثل `v1.0.0` پوش کنید؛ workflow با نام *Release* روی ویندوز تست و build می‌کند و فایل‌ها را به Release اضافه می‌کند.
-
-### ساختار
-
-| مسیر | توضیح |
-|---|---|
-| `account_cleaner/` | هسته، دسترسی به رجیستری، مدیریت پروسه، CLI و GUI |
-| `tests/` | تست‌های واحد و یک تست اختیاری روی رجیستری واقعی |
-| `packaging/` | نقطه‌ی ورود PyInstaller و اسکریپت ساخت |
-| `.github/workflows/` | CI، ساخت exe، انتشار |
-
-### محدودیت‌ها
-
-- دائمی نیست؛ کلاینت هر بار که دوباره حساب منقضی ببیند، کلید را از نو می‌سازد.
-- فقط محلی است؛ اگر محدودیتی سمت سرور اعمال شده باشد، تأثیری روی آن ندارد.
-- فقط ویندوز؛ macOS و لینوکس رکورد را متفاوت ذخیره می‌کنند.
-
-### سلب مسئولیت
-
-این مخزن با هدف پژوهشی و آموزشی منتشر شده است. رعایت شرایط استفاده‌ی (ToS) شرکت Windscribe بر عهده‌ی خود شماست. این پروژه هیچ وابستگی یا تأییدی از سوی Windscribe ندارد. بدون هیچ ضمانتی ارائه می‌شود؛ مسئولیت استفاده با شماست.
-
-### لایسنس
-
-MIT — فایل [LICENSE](LICENSE) را ببینید.
-
-</div>
+MIT - see [LICENSE](LICENSE).

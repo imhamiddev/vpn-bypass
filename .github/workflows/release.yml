@@ -15,6 +15,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: AccountRecordCleaner-windows
@@ -25,4 +26,5 @@ jobs:
             dist/AccountRecordCleaner.exe
             dist/AccountRecordCleaner-cli.exe
             dist/SHA256SUMS.txt
+          body_path: .github/release-body.md
           generate_release_notes: true
