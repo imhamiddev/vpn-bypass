@@ -53,7 +53,7 @@ class App:
 
         root.title(f"{APP_TITLE} {__version__}")
         root.geometry(f"{st.px(640)}x{st.px(740)}")
-        root.minsize(st.px(560), st.px(640))
+        root.minsize(st.px(520), st.px(360))
         st.track(root, bg="background")
         set_titlebar_dark(root, st.theme.name == "dark")
 
@@ -79,7 +79,18 @@ class App:
 
     def _build(self) -> None:
         st = self.style
-        page = self._frame(self.root)
+        outer = self._frame(self.root)
+        outer.pack(fill="both", expand=True)
+        self.canvas = tk.Canvas(outer, highlightthickness=0, bd=0, yscrollincrement=st.px(24))
+        st.track(self.canvas, bg="background")
+        self.vscroll = Scrollbar(outer, st, self.canvas, surface="background")
+        self.vscroll.pack(side="right", fill="y", padx=(0, st.px(2)))
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.shell = self._frame(self.canvas)
+        self._win = self.canvas.create_window(0, 0, window=self.shell, anchor="nw")
+        self.canvas.bind("<Configure>", self._sync_scroll)
+        self.shell.bind("<Configure>", self._sync_scroll)
+        page = self._frame(self.shell)
         page.pack(fill="both", expand=True, padx=st.px(24), pady=(st.px(22), st.px(18)))
         self.page = page
         gap = st.px(14)
@@ -221,7 +232,35 @@ class App:
         w.tag_configure("error", foreground=t.background, background=t.foreground,
                         font=self.style.font_mono_bold)
 
+    def _sync_scroll(self, _event: Any = None) -> None:
+        """Content is at least as tall as the window (so the log can stretch)
+        and scrolls when the window is smaller than the content."""
+        cw, ch = self.canvas.winfo_width(), self.canvas.winfo_height()
+        height = max(ch, self.shell.winfo_reqheight())
+        self.canvas.itemconfigure(self._win, width=cw, height=height)
+        self.canvas.configure(scrollregion=(0, 0, cw, height))
+
+    def _wheel(self, event: Any) -> None:
+        target = self.root.winfo_containing(event.x_root, event.y_root)
+        if target is None or target.winfo_toplevel() is not self.root:
+            return  # a dialog is on top
+        if target is self.text:
+            return  # the log scrolls itself
+        if self.canvas.yview() == (0.0, 1.0):
+            return  # everything fits
+        delta = getattr(event, "delta", 0)
+        if delta:
+            steps = int(-delta / 120) or (-1 if delta > 0 else 1)
+        else:  # X11: Button-4 / Button-5
+            steps = -1 if event.num == 4 else 1
+        self.canvas.yview_scroll(steps * 2, "units")
+
     def _bind_keys(self) -> None:
+        self.root.bind_all("<MouseWheel>", self._wheel)
+        self.root.bind_all("<Button-4>", self._wheel)
+        self.root.bind_all("<Button-5>", self._wheel)
+        self.root.bind("<Prior>", lambda e: self.canvas.yview_scroll(-1, "pages"))
+        self.root.bind("<Next>", lambda e: self.canvas.yview_scroll(1, "pages"))
         self.root.bind("<F5>", lambda e: self.refresh_status())
         self.root.bind("<Control-r>", lambda e: self.refresh_status())
         self.root.bind("<Control-t>", lambda e: self.toggle_theme())
@@ -296,8 +335,9 @@ class App:
 
     def _update_primary(self) -> None:
         self.b_clean.set_text("Preview (dry run)" if self.dry_var.get() else "Clear account record")
-        # nothing to clear -> disable, unless it is a harmless preview or we do not know
-        self.b_clean.set_enabled((not self.busy) and (self.exists is not False or self.dry_var.get()))
+        # never gated on the status badge: it can be stale or unreadable, and
+        # clicking with nothing to delete just reports "already clean".
+        self.b_clean.set_enabled(not self.busy)
 
     def _poll(self) -> None:
         if not self.busy:

@@ -424,7 +424,7 @@ class Separator(tk.Frame):
 class Scrollbar(_Canvas):
     """Slim scrollbar that matches the theme (native ones look out of place)."""
 
-    def __init__(self, parent: tk.Misc, style: Style, target: tk.Text,
+    def __init__(self, parent: tk.Misc, style: Style, target: tk.Misc,
                  surface: str = "card") -> None:
         super().__init__(parent, style, style.px(10), 10, surface)
         self.target = target
