@@ -16,7 +16,7 @@
 > اگر ویندوز هشدار SmartScreen داد: **More info ← Run anyway** (برنامه امضای دیجیتال ندارد).
 > فقط رکورد محلی پاک می‌شود؛ وضعیت سمت سرور ویندسکرایب تغییر نمی‌کند.
 
-📖 آموزش کامل: [README.fa.md](https://github.com/imhamiddev/vpn-bypass/blob/main/README.fa.md)
+📖 آموزش کامل: [README.md](https://github.com/imhamiddev/vpn-bypass/blob/main/README.md)
 
 ---
 

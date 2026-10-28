@@ -3,21 +3,17 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><img alt="دانلود" src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_%D8%AF%D8%A7%D9%86%D9%84%D9%88%D8%AF_%D8%A2%D8%AE%D8%B1%DB%8C%D9%86_%D9%86%D8%B3%D8%AE%D9%87-0e7490?style=for-the-badge&logo=windows&logoColor=white"></a>
+  <a href="../../releases/latest"><img alt="دانلود" src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_%D8%AF%D8%A7%D9%86%D9%84%D9%88%D8%AF_%D8%A2%D8%AE%D8%B1%DB%8C%D9%86_%D9%86%D8%B3%D8%AE%D9%87-18181b?style=for-the-badge&logo=windows&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/github/v/release/imhamiddev/vpn-bypass?style=flat-square&color=6366f1">
-  <img alt="Downloads" src="https://img.shields.io/github/downloads/imhamiddev/vpn-bypass/total?style=flat-square&color=0e7490">
+  <img alt="Release" src="https://img.shields.io/github/v/release/imhamiddev/vpn-bypass?style=flat-square&color=3f3f46">
+  <img alt="Downloads" src="https://img.shields.io/github/downloads/imhamiddev/vpn-bypass/total?style=flat-square&color=18181b">
   <img alt="Build" src="https://img.shields.io/github/actions/workflow/status/imhamiddev/vpn-bypass/release.yml?style=flat-square">
   <img alt="Windows" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=flat-square&logo=windows&logoColor=white">
   <img alt="Python" src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white">
   <img alt="Admin" src="https://img.shields.io/badge/%D8%A8%D8%AF%D9%88%D9%86_%D9%86%DB%8C%D8%A7%D8%B2_%D8%A8%D9%87_Admin-22c55e?style=flat-square">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square">
-</p>
-
-<p align="center">
-  <a href="README.md">English</a> &nbsp;·&nbsp; <b>فارسی</b>
 </p>
 
 <div dir="rtl">
@@ -40,6 +36,7 @@
 | ↩️  | با یک کلیک می‌تونی بکاپ رو برگردونی                                                    |
 | 🔒  | فقط **یک کلید** از رجیستری خودت رو دست می‌زنه؛ اینترنت نمی‌خواد، دسترسی Admin نمی‌خواد |
 | 🧪  | حالت آزمایشی (`--dry-run`) که چیزی رو تغییر نمی‌ده                                     |
+| 🌗  | رابط ساده و مینیمال با تم سیاه‌وسفید (روشن و تاریک، هماهنگ با ویندوز)                  |
 
 > [!IMPORTANT]
 > این ابزار فقط رکورد **روی کامپیوتر خودت** رو پاک می‌کنه. هیچ تغییری سمت سرور ویندسکرایب ایجاد نمی‌کنه و اشتراک هم فعال یا تمدید نمی‌کنه.
@@ -205,7 +202,7 @@ Get-FileHash .\AccountRecordCleaner.exe -Algorithm SHA256
 <details>
 <summary><b>آنتی‌ویروس هشدار داد</b></summary>
 
-برنامه‌هایی که با PyInstaller ساخته می‌شن گاهی هشدار الکی (false positive) می‌گیرن. سورس کامل و workflowی که exe رو می‌سازه توی همین مخزنه؛ می‌تونی خودت هم بسازیش (پایین‌تر).
+برنامه‌هایی که با PyInstaller ساخته می‌شن گاهی هشدار الکی (false positive) می‌گیرن. سورس کامل و workflowی که exe رو می‌سازه توی همین مخزنه؛ می‌تونی خودت هم بررسی و بسازیش.
 
 </details>
 
@@ -227,53 +224,7 @@ reg import .\backups\netcontrolport-20261029-004500.reg
 - ✅ **سورس باز** و کوچک؛ فقط یک کلید زیر `HKCU` رو می‌خونه/حذف می‌کنه.
 - ✅ **بدون اینترنت**؛ برنامه هیچ داده‌ای نمی‌فرسته.
 - ✅ فایل exe با **GitHub Actions** از همین سورس ساخته می‌شه (`.github/workflows/release.yml`) و در Release فایل `SHA256SUMS.txt` هست تا اصالتش رو چک کنی.
-- ✅ ۳۰+ تست خودکار روی منطق برنامه.
-
----
-
-## 🧑‍💻 برای برنامه‌نویس‌ها
-
-**اجرا از سورس:**
-
-</div>
-
-```powershell
-python -m pip install -e .
-python -m account_cleaner --kill-client
-python -m account_cleaner.gui
-```
-
-<div dir="rtl">
-
-**ساخت exe:**
-
-</div>
-
-```powershell
-python -m pip install -e ".[dev]"
-python packaging/build.py        # خروجی در پوشه‌ی dist
-```
-
-<div dir="rtl">
-
-**انتشار نسخه‌ی جدید:** یک تگ بزن و پوش کن؛ بقیه‌اش خودکاره 🤖
-
-</div>
-
-```bash
-git tag v1.0.1
-git push origin v1.0.1
-```
-
-<div dir="rtl">
-
-```text
-account_cleaner/   منطق اصلی، دسترسی به رجیستری، مدیریت پروسه، CLI و GUI
-tests/             تست‌ها
-packaging/         ساخت exe با PyInstaller
-assets/            بنر و تصاویر متحرک
-.github/workflows/ CI، ساخت exe و انتشار
-```
+- ✅ ۴۰+ تست خودکار روی منطق برنامه.
 
 ---
 
